@@ -85,3 +85,7 @@ def add_repository(
         page_id=target_page,
         repository_id=target_repository,
     ).on_conflict_ignore().execute()
+
+
+def fetch_repositories(page):
+    return Repository.select().order_by(-Repository.crawl_stars).paginate(page, 10).dicts()
