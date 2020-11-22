@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f10728a8188a1bb40c1d7868650a7cd11de029272c4d85ab9ec4128d108d1ddf"
+            "sha256": "1449414b83027663c19f7b53df014aec371888b5d014812df2782d9939886a98"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -15,7 +15,15 @@
             }
         ]
     },
-    "default": {},
+    "default": {
+        "peewee": {
+            "hashes": [
+                "sha256:59c5ef43877029b9133d87001dcc425525de231d1f983cece8828197fb4b84fa"
+            ],
+            "index": "pypi",
+            "version": "==3.14.0"
+        }
+    },
     "develop": {
         "astroid": {
             "hashes": [

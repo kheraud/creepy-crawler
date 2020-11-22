@@ -2,12 +2,19 @@
 
 import requests
 import re
-import logging
 
 
-def fetch_page(page_url, auth):
+def fetch_page(page_url, user, password):
 
-    r = requests.get(page_url, auth=auth)
+    auth = None
+
+    if user and password:
+        auth = requests.auth.HTTPBasicAuth(user, password)
+
+    r = requests.get(
+        page_url,
+        auth=auth,
+    )
 
     return r.text
 
@@ -25,26 +32,22 @@ def extract_repo_paths(url_list):
         if repository:
             gh_repos.add(repository.group(1))
         else:
-            logging.debug(
-                f"Skipping url {url} (link) cause not \
-                            a valid github repository"
-            )
             continue
 
     return gh_repos
 
 
-def fetch_repo_stats(repo_path, auth):
+def fetch_repo_stats(repo_path, user, password):
 
     repo_api = requests.get(
-        "https://api.github.com/repos/" + repo_path, auth=auth
+        "https://api.github.com/repos/" + repo_path,
+        auth=requests.auth.HTTPBasicAuth(user, password),
     ).json()
 
     if all(
         key in repo_api
         for key in [
             "name",
-            "full_name",
             "description",
             "html_url",
             "stargazers_count",
@@ -52,10 +55,8 @@ def fetch_repo_stats(repo_path, auth):
             "open_issues_count",
         ]
     ):
-        logging.info(f"Scanned {repo_api['name']}")
         return {
             "name": repo_api["name"],
-            "full_name": repo_api["full_name"],
             "description": repo_api["description"],
             "html_url": repo_api["html_url"],
             "stargazers_count": repo_api["stargazers_count"],
@@ -63,5 +64,4 @@ def fetch_repo_stats(repo_path, auth):
             "open_issues_count": repo_api["open_issues_count"],
         }
     else:
-        logging.warning(f"Can't find repo content for repo_path {repo_path}")
         return None

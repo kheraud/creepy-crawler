@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import requests
-import logging
 from argparse import ArgumentParser
+import logging
 from concurrent.futures import ThreadPoolExecutor
-import utils.github, utils.markdown, utils.writer
-import markdown
+import utils.github
+import utils.markdown
+import utils.writer
+import datetime
+import daos.logic as db
 import sys
 
 
@@ -24,15 +26,27 @@ def get_args():
         help="Stars threshold",
     )
     parser.add_argument(
-        "-o", "--output", dest="output", help="Output destination"
+        "-s",
+        "--skip-repo-older",
+        dest="crawl_min_age",
+        type=int,
+        default=86400,
+        help="Skip repositories last crawled before this duration of seconds",
     )
     parser.add_argument(
-        "-m",
-        "--output-mode",
-        dest="output_mode",
+        "-o",
+        "--output",
+        dest="output",
+        nargs="?",
+        default=None,
         help="Output destination",
-        default="md",
-        choices=["md", "html"],
+    )
+    parser.add_argument(
+        "-d",
+        "--database",
+        dest="database",
+        help="Path to SQLite database",
+        default="app.db",
     )
     parser.add_argument(
         "-l",
@@ -49,65 +63,134 @@ def get_args():
     return parser.parse_args()
 
 
+def init_database(db_path):
+    db.init_database(db_path)
+    db.create_schema()
+    logging.debug("Database initialized")
+
+
+def get_repositories_to_crawl(md_page, crawl_min_age):
+
+    gh_repos_set = set(
+        map(
+            str.lower,
+            utils.github.extract_repo_paths(
+                utils.markdown.extract_urls_from_string(md_page)
+            ),
+        )
+    )
+
+    now = datetime.datetime.now()
+
+    for existing_repo in db.fetch_repositories_by_names(gh_repos_set):
+        since_last_crawl = (now - existing_repo["crawl_date"]).total_seconds()
+
+        if since_last_crawl < crawl_min_age:
+            logging.info(
+                f"Removing {existing_repo['name']} from crawl,"
+                f"last crawl {int(since_last_crawl)} sec. ago"
+            )
+            gh_repos_set.discard(existing_repo["name"])
+
+    return gh_repos_set
+
+
+def save_output(target_file, page_title, repo_stats):
+    logging.info(f"Saving output to {target_file}")
+    utils.writer.write_md(
+        target_file,
+        utils.markdown.format_repo_list(
+            page_title,
+            repo_stats,
+        ),
+    )
+
+
+def update_repo_stats(page_id, repo_path, user, password):
+    stats = utils.github.fetch_repo_stats(repo_path, user, password)
+
+    if stats:
+        logging.debug(f"Repository {repo_path} fetched")
+        db.add_repository(
+            page_id,
+            repo_path,
+            stats["html_url"],
+            stats["description"],
+            datetime.datetime.now(),
+            stats["stargazers_count"],
+            stats["forks_count"],
+            stats["open_issues_count"],
+        )
+        logging.info(f"Repository {repo_path} fetched and stored in db")
+    else:
+        logging.warning(f"Can't fetch repository {repo_path}")
+
+    return stats
+
+
 if __name__ == "__main__":
 
-    args = get_args()
+    configuration = get_args()
 
     logging.basicConfig(
         format="[%(levelname)s] %(asctime)s - %(message)s",
-        level=args.level.upper(),
+        level=configuration.level.upper(),
     )
 
-    gh_auth = requests.auth.HTTPBasicAuth(args.gh_user, args.gh_password)
-
-    md_page = utils.github.fetch_page(args.md, gh_auth)
-
-    gh_repos_set = utils.github.extract_repo_paths(
-        utils.markdown.extract_urls_from_string(md_page)
+    md_page = utils.github.fetch_page(
+        configuration.md, configuration.gh_user, configuration.gh_password
     )
+
+    init_database(configuration.database)
+
+    page_title = utils.markdown.extract_title_from_string(md_page)
+
+    if page_title is None:
+        page_title = configuration.md
+
+    # Create page reference with a None crawl end date
+    crawl_start_date = datetime.datetime.now()
+    page_id = db.add_page(
+        configuration.md, page_title, datetime.datetime.now(), None
+    )
+    logging.info(f"Page info stored in db with id {page_id}")
+
+    repos_to_crawl = get_repositories_to_crawl(
+        md_page, configuration.crawl_min_age
+    )
+
+    count_repo_to_crawl = len(repos_to_crawl)
+
+    logging.info(f"Start crawling {count_repo_to_crawl} repositories")
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = executor.map(
-            utils.github.fetch_repo_stats,
-            gh_repos_set,
-            [gh_auth] * len(gh_repos_set),
-            timeout=60,
+            update_repo_stats,
+            [page_id] * count_repo_to_crawl,
+            repos_to_crawl,
+            [configuration.gh_user] * count_repo_to_crawl,
+            [configuration.gh_password] * count_repo_to_crawl,
+            timeout=300,
         )
 
         repo_stats = [
             r
             for r in results
-            if type(r) is dict and r["stargazers_count"] >= args.star_threshold
+            if type(r) is dict
+            and r["stargazers_count"] >= configuration.star_threshold
         ]
 
-        page_title = utils.markdown.extract_title_from_string(md_page)
+        logging.info(f"End of crawling {len(repos_to_crawl)} repositories")
 
-        if page_title is None:
-            page_title = args.md
-
-        target_file = args.output
-
-        if target_file is None:
-            from slugify import slugify
-
-            filename = slugify(page_title)
-            target_file = f"./{filename}.{args.output_mode}"
-
-        logging.info(f"Saving output to {target_file}")
-
-        md_output = utils.markdown.format_repo_list(
+        # Update page reference with a real end date
+        db.add_page(
+            configuration.md,
             page_title,
-            repo_stats,
+            crawl_start_date,
+            datetime.datetime.now(),
         )
 
-        with open(target_file, "w") as file:
-            if args.output_mode == "md":
-                utils.writer.write_md(target_file, md_output)
-            elif args.output_mode == "html":
-                html_output = markdown.markdown(md_output)
-                utils.writer.write_html(target_file, page_title, html_output)
-            else:
-                logging.error(f"Can't output to {args.output_mode} format")
-                sys.exit(1)
+        if configuration.output:
+            save_output(configuration.output, page_title, repo_stats)
 
 sys.exit(0)
