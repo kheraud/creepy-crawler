@@ -15,7 +15,7 @@ def create_schema():
         db.create_tables([Repository, Page, PageTargetRepository], safe=True)
 
 
-def fetch_repositories_by_names(repo_names):
+def match_repositories_by_names(repo_names):
     return Repository.select().where(Repository.name.in_(repo_names)).dicts()
 
 

@@ -83,7 +83,7 @@ def get_repositories_to_crawl(md_page, crawl_min_age):
     count_initial_repo = len(gh_repos_set)
     now = datetime.datetime.now()
 
-    for existing_repo in db.fetch_repositories_by_names(gh_repos_set):
+    for existing_repo in db.match_repositories_by_names(gh_repos_set):
         since_last_crawl = (now - existing_repo["crawl_date"]).total_seconds()
 
         if since_last_crawl < crawl_min_age:
