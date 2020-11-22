@@ -53,7 +53,7 @@ def get_args():
         "--log-level",
         dest="level",
         choices=["debug", "info", "warning", "error", "critical"],
-        default="warning",
+        default="info",
         help="Log level",
     )
     parser.add_argument(
@@ -80,17 +80,20 @@ def get_repositories_to_crawl(md_page, crawl_min_age):
         )
     )
 
+    count_initial_repo = len(gh_repos_set)
     now = datetime.datetime.now()
 
     for existing_repo in db.fetch_repositories_by_names(gh_repos_set):
         since_last_crawl = (now - existing_repo["crawl_date"]).total_seconds()
 
         if since_last_crawl < crawl_min_age:
-            logging.info(
+            logging.debug(
                 f"Removing {existing_repo['name']} from crawl,"
                 f"last crawl {int(since_last_crawl)} sec. ago"
             )
             gh_repos_set.discard(existing_repo["name"])
+
+    logging.info(f"{count_initial_repo - len(gh_repos_set)} repo removed from crawl cause already crawled recently")
 
     return gh_repos_set
 
@@ -121,7 +124,7 @@ def update_repo_stats(page_id, repo_path, user, password):
             stats["forks_count"],
             stats["open_issues_count"],
         )
-        logging.info(f"Repository {repo_path} fetched and stored in db")
+        logging.debug(f"Repository {repo_path} stored in db")
     else:
         logging.warning(f"Can't fetch repository {repo_path}")
 
@@ -153,7 +156,7 @@ if __name__ == "__main__":
     page_id = db.add_page(
         configuration.md, page_title, datetime.datetime.now(), None
     )
-    logging.info(f"Page info stored in db with id {page_id}")
+    logging.debug(f"Page info stored in db with id {page_id}")
 
     repos_to_crawl = get_repositories_to_crawl(
         md_page, configuration.crawl_min_age
