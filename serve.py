@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-import daos.logic as db
 import logging
-import sys
+from gevent.pywsgi import WSGIServer
+from flask import Flask, jsonify, request
+import daos.logic as db
+
 
 def get_args():
     parser = ArgumentParser()
@@ -22,13 +24,71 @@ def get_args():
         default="info",
         help="Log level",
     )
+    parser.add_argument(
+        "-p",
+        "--port",
+        dest="port",
+        type=int,
+        default=5000,
+        help="Server port",
+    )
 
     return parser.parse_args()
+
 
 def init_database(db_path):
     db.init_database(db_path)
     db.create_schema()
-    logging.debug("Database initialized")
+
+
+app = Flask(__name__, static_folder="dist", static_url_path="/assets")
+
+
+@app.route("/pages", defaults={"path": None})
+@app.route("/pages/<path:path>")
+def pages(path):
+    datas = db.fetch_aggregated_pages(path)[:]
+    if path:
+        if datas:
+            return jsonify(datas[0])
+        else:
+            return jsonify({'error': 'Not Found'}), 404
+    else:
+        return jsonify(datas)
+
+
+@app.route("/repos")
+def repos():
+    status = request.args.getlist("status", type=int)
+    review_status = request.args.getlist("review_status", type=int)
+
+    page = request.args.get("page", type=int)
+    limit = request.args.get("limit", type=int)
+    offset = request.args.get("offset", type=int)
+    sort_key = request.args.get("sort", type=str)
+
+    repos = db.fetch_repositories(
+        status if status else None,
+        review_status if review_status else None,
+        page if page else None,
+        sort_key if sort_key else None,
+        limit if limit else 100,
+        offset if offset else 0,
+    )[:]
+
+    return jsonify(repos)
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_spa(path):
+    return app.send_static_file("index.html")
+
+
+def serve(port):
+    http_server = WSGIServer(("", port), app)
+    http_server.serve_forever()
+
 
 if __name__ == "__main__":
 
@@ -41,5 +101,7 @@ if __name__ == "__main__":
 
     init_database(configuration.database)
 
-    for repo in db.fetch_repositories(2):
-        print(repo)
+    try:
+        serve(configuration.port)
+    except KeyboardInterrupt:
+        logging.info("Shutting down server")

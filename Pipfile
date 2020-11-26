@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 peewee = "*"
+flask = "*"
+gevent = "*"
 
 [dev-packages]
 pylint = "*"

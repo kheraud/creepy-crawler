@@ -4,6 +4,7 @@ from .model import (
     Page,
     PageTargetRepository,
 )
+from peewee import fn
 
 
 def init_database(sqlite_file):
@@ -87,5 +88,64 @@ def add_repository(
     ).on_conflict_ignore().execute()
 
 
-def fetch_repositories(page):
-    return Repository.select().order_by(-Repository.crawl_stars).paginate(page, 10).dicts()
+def fetch_repositories(
+    status, review_status, target_page, sort_key, limit, offset
+):
+    query = Repository.select()
+
+    if status:
+        query = query.where(Repository.status.in_(status))
+    if review_status:
+        query = query.where(Repository.review_status.in_(review_status))
+    if target_page:
+        query = query.join(
+            PageTargetRepository, on=PageTargetRepository.repository
+        ).where(PageTargetRepository.page == target_page)
+
+    if sort_key == "stars":
+        query = query.order_by(-Repository.crawl_stars)
+    elif sort_key == "forks":
+        query = query.order_by(-Repository.crawl_forks)
+    elif sort_key == "issues":
+        query = query.order_by(-Repository.crawl_issues)
+    elif sort_key == "status":
+        query = query.order_by(-Repository.status)
+    elif sort_key == "review_status":
+        query = query.order_by(-Repository.review_status)
+    else:
+        query = query.order_by(-Repository.crawl_date)
+
+    return query.offset(offset).limit(limit).dicts()
+
+
+def fetch_aggregated_pages(target_page):
+
+    query = (
+        Repository.select(
+            Page,
+            Repository.status,
+            fn.Count(Repository.id).alias("count")
+        )
+        .join(PageTargetRepository)
+        .group_by(PageTargetRepository.page, Repository.status)
+        .join(Page)
+    )
+
+    if target_page:
+        query = query.where(PageTargetRepository.page == target_page)
+
+    pages_stats = {}
+
+    for page_stat in query.dicts():
+        page_id = page_stat["id"]
+        page_status = page_stat["status"]
+        repo_count = page_stat["count"]
+
+        if page_id not in pages_stats:
+            pages_stats[page_id] = page_stat
+            pages_stats[page_id]["status"] = {}
+            del pages_stats[page_id]["count"]
+
+        pages_stats[page_id]["status"][page_status] = repo_count
+
+    return sorted(pages_stats.values(), key=lambda x: x["name"])
