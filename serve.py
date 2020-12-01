@@ -53,8 +53,8 @@ app = Flask(
 CORS(app)
 
 
-@app.route("/pages", defaults={"path": None})
-@app.route("/pages/<path:path>")
+@app.route("/api/pages", defaults={"path": None})
+@app.route("/api/pages/<path:path>")
 def pages(path):
     datas = db.fetch_aggregated_pages(path)[:]
     if path:
@@ -66,7 +66,7 @@ def pages(path):
         return jsonify(datas)
 
 
-@app.route("/repos")
+@app.route("/api/repos")
 def repos():
     status = request.args.getlist("status", type=int)
     review_status = request.args.getlist("review_status", type=int)
