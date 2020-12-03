@@ -20,9 +20,9 @@ REPOSITORY_STATUS = [
 
 REPOSITORY_REVIEW_STATUS = [
     (0, "No interest"),
-    (0, "Why not"),
-    (0, "Cool"),
-    (0, "Must have"),
+    (1, "Why not"),
+    (2, "Cool"),
+    (3, "Must have"),
 ]
 
 DATETIME_FORMATS = "%Y-%m-%d %H:%M:%S.%f"

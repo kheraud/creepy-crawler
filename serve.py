@@ -3,7 +3,8 @@
 from argparse import ArgumentParser
 import logging
 from gevent.pywsgi import WSGIServer
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
 import daos.logic as db
 
 
@@ -43,11 +44,17 @@ def init_database(db_path):
     db.create_schema()
 
 
-app = Flask(__name__, static_folder="dist", static_url_path="/assets")
+app = Flask(
+    __name__,
+    static_folder="./dist/static",
+    template_folder="./dist"
+)
+
+CORS(app)
 
 
-@app.route("/pages", defaults={"path": None})
-@app.route("/pages/<path:path>")
+@app.route("/api/pages", defaults={"path": None})
+@app.route("/api/pages/<path:path>")
 def pages(path):
     datas = db.fetch_aggregated_pages(path)[:]
     if path:
@@ -59,7 +66,7 @@ def pages(path):
         return jsonify(datas)
 
 
-@app.route("/repos")
+@app.route("/api/repos")
 def repos():
     status = request.args.getlist("status", type=int)
     review_status = request.args.getlist("review_status", type=int)
@@ -84,7 +91,7 @@ def repos():
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_spa(path):
-    return app.send_static_file("index.html")
+    return render_template("index.html")
 
 
 def serve(port):
