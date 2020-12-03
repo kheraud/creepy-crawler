@@ -38,7 +38,7 @@ const SelectRepositorySort = [
   { text: "Status", value: 'status' },
 ];
 
-const RepositoryPerPage = 4;
+const RepositoryPerPage = 40;
 
 export {
   SelectRepositorySort,

@@ -1,47 +1,63 @@
 <template>
   <v-app>
+    <v-navigation-drawer v-model="drawer" app clipped stateless>
+      <v-list shaped>
+        <v-subheader>Categories</v-subheader>
+        <v-list-item-group v-if="categories" v-model="categoryIndex" color="primary">
+          <v-list-item v-for="item in categories" :key="item.id">
+            <v-list-item-content>
+              <v-list-item-title v-text="item.name"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
+        <FullLoader v-else />
+      </v-list>
+    </v-navigation-drawer>
+
     <v-app-bar app>
-      Bar
+      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-toolbar-title>Creepy Crawler</v-toolbar-title>
     </v-app-bar>
+
     <v-main>
-      <v-container fluid>
-        <v-select v-model="pageId" :items="pageList" />
-        <RepoList v-bind:page-id="pageId" />
+      <v-container v-if="categories" fluid>
+        <RepoList v-bind:page-id="categories[categoryIndex].id" />
       </v-container>
+      <FullLoader v-else />
     </v-main>
-    <v-footer app>
-      Footer here
-    </v-footer>
+    <Footer />
   </v-app>
 </template>
 
 <script>
 import RepoList from "./components/RepoList.vue";
+import Footer from "./components/Footer.vue";
+import FullLoader from "./components/FullLoader.vue"
 
 export default {
   data() {
     return {
-      pageId: null,
-      pageList: [],
-    }
+      categoryIndex: 0,
+      categories: null,
+      drawer: true,
+    };
   },
   components: {
     RepoList,
+    Footer,
+    FullLoader,
   },
   mounted() {
     fetch("/api/pages")
       .then((response) => response.json())
       .then((data) => {
-        this.pageList = [{
-          text: "-- All pages --",
-          value: null
-        }]
-        data.forEach(element => {
-          this.pageList.push({
-            text: element.name + ' (' + element.count + ')',
-            value: element.id
-          })
-        });
+        this.categories = [
+          {
+            id: null,
+            name: "All",
+          },
+          ...data,
+        ];
       });
   },
 };
