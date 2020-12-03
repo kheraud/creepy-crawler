@@ -1,6 +1,7 @@
 <template>
   <div>
     <v-pagination
+      v-if="repos"
       v-model="page"
       :length="4"
     ></v-pagination>
@@ -20,6 +21,12 @@
       />
 
     </div>
+        <v-pagination
+      v-if="repos"
+      v-model="page"
+      :length="4"
+    ></v-pagination>
+
   </div>
 </template>
 <script>
