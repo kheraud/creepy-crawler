@@ -1,15 +1,18 @@
 <template>
-  <div>
-    <section class="section">
-      <select v-model="pageId">
-        <option disabled value="">-- Select a page --</option>
-        <option v-for="page in pages" v-bind:key="page.id" v-bind:value="page.id">
-          {{ page.name }}
-        </option>
-      </select>
-      <RepoList v-bind:page-id="pageId" />
-    </section>
-  </div>
+  <v-app>
+    <v-app-bar app>
+      Bar
+    </v-app-bar>
+    <v-main>
+      <v-container fluid>
+        <v-select v-model="pageId" :items="pageList" />
+        <RepoList v-bind:page-id="pageId" />
+      </v-container>
+    </v-main>
+    <v-footer app>
+      Footer here
+    </v-footer>
+  </v-app>
 </template>
 
 <script>
@@ -19,7 +22,7 @@ export default {
   data() {
     return {
       pageId: null,
-      pages: []
+      pageList: [],
     }
   },
   components: {
@@ -28,8 +31,18 @@ export default {
   mounted() {
     fetch("/api/pages")
       .then((response) => response.json())
-      .then((data) => (this.pages = data));
+      .then((data) => {
+        this.pageList = [{
+          text: "-- All pages --",
+          value: null
+        }]
+        data.forEach(element => {
+          this.pageList.push({
+            text: element.name + ' (' + element.count + ')',
+            value: element.id
+          })
+        });
+      });
   },
-
 };
 </script>
