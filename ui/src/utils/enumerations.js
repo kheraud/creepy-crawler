@@ -31,7 +31,6 @@ const SelectRepositoryStatus = Object.entries(RepositoryStatus).map((x) => {
 
 
 const SelectRepositorySort = [
-  { text: "Crawl date", value: null },
   { text: "# Stars", value: 'stars' },
   { text: "# Forks", value: 'forks' },
   { text: "# Issues", value: 'issues' },
