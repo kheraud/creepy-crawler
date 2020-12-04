@@ -21,7 +21,7 @@
 
     <v-main>
       <v-container v-if="categories" fluid>
-        <RepoList v-bind:page-id="categories[categoryIndex].id" />
+        <RepoList v-bind:category="categories[categoryIndex].id" />
       </v-container>
       <FullLoader v-else />
     </v-main>

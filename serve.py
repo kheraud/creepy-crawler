@@ -8,7 +8,8 @@ from flask_cors import CORS
 import daos.logic as db
 
 
-# @TODO Add Patch repo with status / review_elements
+MAX_LIMIT_REPOSITORY=200
+DEFAULT_LIMIT_REPOSITORY=25
 
 def get_args():
     parser = ArgumentParser()
@@ -69,23 +70,40 @@ def pages(path):
 @app.route("/api/repos")
 def repos():
     status = request.args.getlist("status", type=int)
-    review_status = request.args.getlist("review_status", type=int)
+    status = status if status else None
 
     page = request.args.get("page", type=int)
-    limit = request.args.get("limit", type=int)
-    offset = request.args.get("offset", type=int)
+
     sort_key = request.args.get("sort", type=str)
+    
+    limit = request.args.get("limit", type=int)
+    limit = min(limit, MAX_LIMIT_REPOSITORY) if limit else DEFAULT_LIMIT_REPOSITORY
+
+    offset = request.args.get("offset", type=int)
+    offset = offset if offset else 0
 
     repos = db.fetch_repositories(
         status if status else None,
-        review_status if review_status else None,
-        page if page else None,
+        page,
         sort_key if sort_key else None,
-        limit if limit else 100,
-        offset if offset else 0,
+        limit,
+        offset,
     )[:]
 
-    return jsonify(repos)
+    response = {
+      'metadata': {
+        'limit': limit,
+        'offset': offset,
+        'count': len(repos),
+        'total': db.fetch_repositories_count(
+            status,
+            page,
+        ),
+      },
+      'results': repos
+    }
+
+    return jsonify(response)
 
 
 @app.route("/", defaults={"path": ""})

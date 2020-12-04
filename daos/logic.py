@@ -88,15 +88,11 @@ def add_repository(
     ).on_conflict_ignore().execute()
 
 
-def fetch_repositories(
-    status, review_status, target_page, sort_key, limit, offset
-):
-    query = Repository.select()
+def fetch_repositories(status, target_page, sort_key, limit, offset):
+    query = Repository.select(Repository)
 
     if status:
         query = query.where(Repository.status.in_(status))
-    if review_status:
-        query = query.where(Repository.review_status.in_(review_status))
     if target_page:
         query = query.join(
             PageTargetRepository, on=PageTargetRepository.repository
@@ -118,13 +114,28 @@ def fetch_repositories(
     return query.offset(offset).limit(limit).dicts()
 
 
+def fetch_repositories_count(status, target_page):
+    query = Repository.select(fn.Count(Repository.name))
+
+    if status:
+        query = query.where(Repository.status.in_(status))
+    if target_page:
+        query = query.join(
+            PageTargetRepository, on=PageTargetRepository.repository
+        ).where(PageTargetRepository.page == target_page)
+
+    for res in query.tuples():
+      if res and len(res) > 0:
+        return res[0]
+      else:
+        return None
+
+
 def fetch_aggregated_pages(target_page):
 
     query = (
         Repository.select(
-            Page,
-            Repository.status,
-            fn.Count(Repository.id).alias("count")
+            Page, Repository.status, fn.Count(Repository.name).alias("count")
         )
         .join(PageTargetRepository)
         .group_by(PageTargetRepository.page, Repository.status)
