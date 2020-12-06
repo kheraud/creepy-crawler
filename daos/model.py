@@ -1,6 +1,7 @@
 from peewee import (
     SqliteDatabase,
     Model,
+    AutoField,
     SmallIntegerField,
     CharField,
     TextField,
@@ -34,6 +35,7 @@ class BaseModel(Model):
 
 
 class Repository(BaseModel):
+    id = AutoField()
     name = CharField(index=True, unique=True)
     url = TextField()
     description = TextField(null=True)
@@ -52,6 +54,7 @@ class Repository(BaseModel):
 
 
 class Page(BaseModel):
+    id = AutoField()
     url = TextField(index=True, unique=True)
     name = CharField()
     crawl_start_date = DateTimeField(formats=DATETIME_FORMATS)

@@ -5,14 +5,15 @@ name = "pypi"
 
 [packages]
 peewee = "*"
-flask = "*"
+Flask = "*"
 gevent = "*"
-flask-cors = "*"
+Flask-Cors = "*"
+marshmallow = "*"
 
 [dev-packages]
 pylint = "*"
 flake8 = "*"
-markdown = "*"
+Markdown = "*"
 python-slugify = "*"
 
 [requires]

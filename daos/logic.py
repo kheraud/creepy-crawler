@@ -4,7 +4,7 @@ from .model import (
     Page,
     PageTargetRepository,
 )
-from peewee import fn
+from peewee import fn, DoesNotExist
 
 
 def init_database(sqlite_file):
@@ -124,10 +124,9 @@ def fetch_repositories_count(status, target_page):
             PageTargetRepository, on=PageTargetRepository.repository
         ).where(PageTargetRepository.page == target_page)
 
-    for res in query.tuples():
-      if res and len(res) > 0:
-        return res[0]
-      else:
+    try:
+        return query.get()
+    except DoesNotExist:
         return None
 
 
@@ -160,3 +159,15 @@ def fetch_aggregated_pages(target_page):
         pages_stats[page_id]["status"][page_status] = repo_count
 
     return sorted(pages_stats.values(), key=lambda x: x["name"])
+
+
+def fetch_repository(repo_id):
+    try:
+        repo = Repository.get(Repository.id == repo_id)
+    except DoesNotExist:
+        repo = None
+    return repo
+
+
+def update_repository(repo):
+    return repo.save()
