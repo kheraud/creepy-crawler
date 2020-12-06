@@ -17,6 +17,7 @@ REPOSITORY_STATUS = [
     (1, "To test"),
     (2, "Dropped"),
     (3, "To implement"),
+    (4, "Implemented"),
 ]
 
 REPOSITORY_REVIEW_STATUS = [

@@ -124,10 +124,11 @@ def fetch_repositories_count(status, target_page):
             PageTargetRepository, on=PageTargetRepository.repository
         ).where(PageTargetRepository.page == target_page)
 
-    try:
-        return query.get()
-    except DoesNotExist:
-        return None
+    for res in query.tuples():
+        if res and len(res) > 0:
+            return res[0]
+        else:
+            return None
 
 
 def fetch_aggregated_pages(target_page):

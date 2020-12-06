@@ -125,7 +125,9 @@ def patch_repo(repo_id):
         return {"errors": err.messages}, 400
 
     target_repo.status = review["status"]
-    target_repo.review_comment = review["review_comment"]
+
+    if "review_comment" in review:
+      target_repo.review_comment = review["review_comment"]
 
     db.update_repository(target_repo)
 

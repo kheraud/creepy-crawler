@@ -3,10 +3,24 @@
     <v-navigation-drawer v-model="drawer" app clipped stateless>
       <v-list shaped>
         <v-subheader>Categories</v-subheader>
-        <v-list-item-group v-if="categories" v-model="categoryIndex" color="primary">
+        <v-list-item-group
+          v-if="categories"
+          v-model="categoryIndex"
+          color="primary"
+        >
           <v-list-item v-for="item in categories" :key="item.id">
             <v-list-item-content>
               <v-list-item-title v-text="item.name"></v-list-item-title>
+              <v-list-item-subtitle v-if="'status' in item" align="center">
+                <StatusLabel
+                  v-for="st in repositoryStatus"
+                  :key="st.id"
+                  :icon="st.icon"
+                  :label="st.id in item['status'] ? item['status'][st.id] : 0"
+                  :color-ref="st.color"
+                >
+                </StatusLabel>
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list-item-group>
@@ -30,9 +44,11 @@
 </template>
 
 <script>
+import FullLoader from "./components/FullLoader.vue";
+import StatusLabel from "./components/StatusLabel";
+import { RepositoryStatus } from "./utils/enumerations.js";
 import RepoList from "./components/RepoList.vue";
 import Footer from "./components/Footer.vue";
-import FullLoader from "./components/FullLoader.vue"
 
 export default {
   data() {
@@ -40,12 +56,14 @@ export default {
       categoryIndex: 0,
       categories: null,
       drawer: true,
+      repositoryStatus: RepositoryStatus,
     };
   },
   components: {
     RepoList,
     Footer,
     FullLoader,
+    StatusLabel,
   },
   mounted() {
     fetch("/api/pages")
