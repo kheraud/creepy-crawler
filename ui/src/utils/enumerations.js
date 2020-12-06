@@ -1,31 +1,44 @@
-const RepositoryStatus = {
-  0: {
+const RepositoryStatus = [
+  {
+    id: 0,
     label: "To analyze",
-    color: "grey lighten-3",
+    color: "blue-grey darken-3",
+    icon: "mdi-help-circle-outline",
   },
-  1: {
+  {
+    id: 1,
     label: "To test",
-    color: "amber lighten-2",
+    color: "orange accent-4",
+    icon: "mdi-flask-empty-outline",
   },
-  2: {
+  {
+    id: 2,
     label: "Dropped",
-    color: "brown darken-3",
+    color: "blue-grey lighten-3",
+    icon: "mdi-minus-circle-outline",
   },
-  3: {
+  {
+    id: 3,
     label: "To implement",
-    color: "amber darken-3",
+    color: "deep-orange accent-3",
+    icon: "mdi-shovel",
   },
-  4: {
+  {
+    id: 4,
     label: "Implemented",
-    color: "light-green lighten-2",
+    color: "green darken-3",
+    icon: "mdi-thumb-up-outline",
   }
-};
+];
 
+const MapRepositoryStatus = new Map(
+  RepositoryStatus.map(key => [key.id, key])
+);
 
-const SelectRepositoryStatus = Object.entries(RepositoryStatus).map((x) => {
+const SelectRepositoryStatus = RepositoryStatus.map((x) => {
   return {
-    value: +x[0],
-    text: x[1].label,
+    value: x.id,
+    text: x.label,
   };
 });
 
@@ -42,6 +55,7 @@ const RepositoryPerPage = 40;
 export {
   SelectRepositorySort,
   RepositoryStatus,
+  MapRepositoryStatus,
   SelectRepositoryStatus,
   RepositoryPerPage,
 };

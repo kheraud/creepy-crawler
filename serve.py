@@ -6,10 +6,12 @@ from gevent.pywsgi import WSGIServer
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 import daos.logic as db
+from daos.schema import ReviewSchema
+from marshmallow import ValidationError
 
+MAX_LIMIT_REPOSITORY = 200
+DEFAULT_LIMIT_REPOSITORY = 25
 
-MAX_LIMIT_REPOSITORY=200
-DEFAULT_LIMIT_REPOSITORY=25
 
 def get_args():
     parser = ArgumentParser()
@@ -45,11 +47,7 @@ def init_database(db_path):
     db.create_schema()
 
 
-app = Flask(
-    __name__,
-    static_folder="./dist/static",
-    template_folder="./dist"
-)
+app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 
 CORS(app)
 
@@ -62,7 +60,7 @@ def pages(path):
         if datas:
             return jsonify(datas[0])
         else:
-            return jsonify({'error': 'Not Found'}), 404
+            return jsonify({"error": "Not Found"}), 404
     else:
         return jsonify(datas)
 
@@ -75,9 +73,11 @@ def repos():
     page = request.args.get("page", type=int)
 
     sort_key = request.args.get("sort", type=str)
-    
+
     limit = request.args.get("limit", type=int)
-    limit = min(limit, MAX_LIMIT_REPOSITORY) if limit else DEFAULT_LIMIT_REPOSITORY
+    limit = (
+        min(limit, MAX_LIMIT_REPOSITORY) if limit else DEFAULT_LIMIT_REPOSITORY
+    )
 
     offset = request.args.get("offset", type=int)
     offset = offset if offset else 0
@@ -91,19 +91,47 @@ def repos():
     )[:]
 
     response = {
-      'metadata': {
-        'limit': limit,
-        'offset': offset,
-        'count': len(repos),
-        'total': db.fetch_repositories_count(
-            status,
-            page,
-        ),
-      },
-      'results': repos
+        "metadata": {
+            "limit": limit,
+            "offset": offset,
+            "count": len(repos),
+            "total": db.fetch_repositories_count(
+                status,
+                page,
+            ),
+        },
+        "results": repos,
     }
 
     return jsonify(response)
+
+
+repo_review_schema = ReviewSchema()
+
+
+@app.route("/api/repos/<int:repo_id>", methods=["PATCH"])
+def patch_repo(repo_id):
+    # Does this repo exists
+    target_repo = db.fetch_repository(repo_id)
+
+    if not target_repo:
+        return jsonify({"error": "Not Found"}), 404
+
+    json_input = request.json
+
+    try:
+        review = repo_review_schema.load(json_input)
+    except ValidationError as err:
+        return {"errors": err.messages}, 400
+
+    target_repo.status = review["status"]
+
+    if "review_comment" in review:
+      target_repo.review_comment = review["review_comment"]
+
+    db.update_repository(target_repo)
+
+    return "", 200
 
 
 @app.route("/", defaults={"path": ""})
