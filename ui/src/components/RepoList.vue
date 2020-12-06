@@ -1,20 +1,28 @@
 <template>
-  <div>
+  <v-card flat class="ma-0 pa-0" :loading="loading">
     <v-pagination
       v-if="pageCount"
+      @input="fetchList(false)"
       v-model="page"
       :length="pageCount"
       total-visible="7"
+      class="mt-4"
     ></v-pagination>
     <v-container fluid>
       <v-row align="center">
         <v-col class="d-flex" cols="12" sm="6">
-          <v-select v-model="sort" :items="sortList" label="Sort" />
+          <v-select
+            v-model="sort"
+            :items="sortList"
+            label="Sort"
+            v-on:change="fetchList(true)"
+          />
         </v-col>
         <v-col class="d-flex" cols="12" sm="6">
           <v-select
             v-model="statuses"
             :items="statusList"
+            @change="fetchList(true)"
             label="Status"
             multiple
             clearable
@@ -26,23 +34,14 @@
     <div v-if="repos !== null" class="d-flex justify-space-around flex-wrap">
       <Repository v-for="repo in repos" :key="repo.name" :content="repo" />
     </div>
-    <div v-else class="d-flex justify-space-around flex-wrap">
-      <v-skeleton-loader
-        v-for="n in repositoryPerPage"
-        :key="n"
-        elevation="1"
-        type="article, actions"
-        width="400"
-        class="ma-1"
-      />
-    </div>
     <v-pagination
       v-if="pageCount"
+      @input="fetchList(false)"
       v-model="page"
       :length="pageCount"
       total-visible="7"
     ></v-pagination>
-  </div>
+  </v-card>
 </template>
 <script>
 import Repository from "./Repository.vue";
@@ -61,6 +60,8 @@ export default {
   },
   data() {
     return {
+      loading: true,
+
       repositoryPerPage: RepositoryPerPage,
       sortList: SelectRepositorySort,
       statusList: SelectRepositoryStatus,
@@ -68,30 +69,19 @@ export default {
       sort: SelectRepositorySort[0].value,
       statuses: null,
 
-      repos: null,
+      repos: [],
       page: 1,
       pageCount: null,
     };
   },
   watch: {
     category: function() {
-      this.page = 1;
-      this.pageCount = null;
-      this.fetchList();
-    },
-    sort: function() {
-      this.fetchList();
-    },
-    page: function() {
-      this.fetchList();
-    },
-    statuses: function() {
-      this.fetchList();
+      this.fetchList(true);
     },
   },
   methods: {
-    fetchList: function() {
-      this.repos = null;
+    fetchList: function(forcePageRewind) {
+      this.loading = true;
 
       let statusQuery = [];
 
@@ -119,7 +109,7 @@ export default {
         },
         {
           key: "offset",
-          value: (this.page - 1) * RepositoryPerPage,
+          value: forcePageRewind ? 0 : ((this.page - 1) * RepositoryPerPage),
         },
         ...statusQuery,
       ];
@@ -133,16 +123,23 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           this.repos = data["results"];
-          if (data["metadata"]["limit"] > 0) {
+  
+          if (forcePageRewind)
+            this.page = 1;
+
+          console.log(forcePageRewind);
+
+          if (data["metadata"]["limit"] > 0)
             this.pageCount = Math.ceil(
               data["metadata"]["total"] / Math.min(data["metadata"]["limit"])
             );
-          }
+
+          this.loading = false;
         });
     },
   },
   mounted() {
-    this.fetchList();
+    this.fetchList(true);
   },
 };
 </script>

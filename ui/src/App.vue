@@ -16,7 +16,7 @@
                   v-for="st in repositoryStatus"
                   :key="st.id"
                   :icon="st.icon"
-                  :label="st.id in item['status'] ? item['status'][st.id] : 0"
+                  :label="st.id in item['status'] ? item['status'][st.id].toString() : '0'"
                   :color-ref="st.color"
                 >
                 </StatusLabel>
@@ -34,7 +34,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-container v-if="categories" fluid>
+      <v-container v-if="categories" fluid class="pa-0">
         <RepoList v-bind:category="categories[categoryIndex].id" />
       </v-container>
       <FullLoader v-else />
