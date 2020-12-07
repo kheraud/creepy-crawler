@@ -8,7 +8,9 @@ import utils.markdown
 import utils.writer
 import datetime
 import daos.logic as db
-import sys, os
+import sys
+import os
+import utils.exception
 
 
 def get_args():
@@ -98,7 +100,8 @@ def get_repositories_to_crawl(md_page, crawl_min_age):
             gh_repos_set.discard(existing_repo["name"])
 
     logging.info(
-        f"{count_initial_repo - len(gh_repos_set)} repo removed from crawl cause already crawled recently"
+        f"{count_initial_repo - len(gh_repos_set)}"
+        "repo removed from crawl cause already crawled recently"
     )
 
     return gh_repos_set
@@ -146,9 +149,19 @@ if __name__ == "__main__":
         level=configuration.level.upper(),
     )
 
-    md_page = utils.github.fetch_page(
-        configuration.md, configuration.gh_user, configuration.gh_password
-    )
+    if not utils.github.check_auth(
+        configuration.gh_user, configuration.gh_password
+    ):
+        logging.error("Wrong credentials to access Github API")
+        sys.exit(1)
+
+    try:
+        md_page = utils.github.fetch_page(
+            configuration.md, configuration.gh_user, configuration.gh_password
+        )
+    except utils.exception.NetworkError as net_err:
+        logging.error(f"Error while fetching {configuration.md}: {net_err}")
+        sys.exit(2)
 
     init_database(configuration.database)
 
