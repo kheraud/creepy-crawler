@@ -8,26 +8,30 @@ import utils.markdown
 import utils.writer
 import datetime
 import daos.logic as db
-import sys
+import sys, os
 
 
 def get_args():
     parser = ArgumentParser()
-    parser.add_argument("-u", "--user", dest="gh_user", help="Github user")
     parser.add_argument(
-        "-p", "--password", dest="gh_password", help="Github password"
+        "-u",
+        "--github-user",
+        dest="gh_user",
+        default=os.environ.get("GITHUB_USER"),
+        metavar="GITHUB_USER",
+        help="Github user",
     )
     parser.add_argument(
-        "-t",
-        "--star-threshold",
-        dest="star_threshold",
-        type=int,
-        default=1000,
-        help="Stars threshold",
+        "-p",
+        "--github-password",
+        dest="gh_password",
+        default=os.environ.get("GITHUB_PASSWORD"),
+        metavar="GITHUB_PASSWORD",
+        help="Github password",
     )
     parser.add_argument(
-        "-s",
-        "--skip-repo-older",
+        "-c",
+        "--crawl-min-age",
         dest="crawl_min_age",
         type=int,
         default=86400,
@@ -93,7 +97,9 @@ def get_repositories_to_crawl(md_page, crawl_min_age):
             )
             gh_repos_set.discard(existing_repo["name"])
 
-    logging.info(f"{count_initial_repo - len(gh_repos_set)} repo removed from crawl cause already crawled recently")
+    logging.info(
+        f"{count_initial_repo - len(gh_repos_set)} repo removed from crawl cause already crawled recently"
+    )
 
     return gh_repos_set
 
@@ -176,12 +182,7 @@ if __name__ == "__main__":
             timeout=300,
         )
 
-        repo_stats = [
-            r
-            for r in results
-            if type(r) is dict
-            and r["stargazers_count"] >= configuration.star_threshold
-        ]
+        repo_stats = [r for r in results if type(r) is dict]
 
         logging.info(f"End of crawling {len(repos_to_crawl)} repositories")
 
