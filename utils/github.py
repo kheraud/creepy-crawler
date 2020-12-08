@@ -2,6 +2,18 @@
 
 import requests
 import re
+from .exception import NetworkError
+
+
+def check_auth(user, password) -> bool:
+    me = requests.get(
+        "https://api.github.com/user",
+        auth=requests.auth.HTTPBasicAuth(user, password),
+    )
+    if me.status_code == 200:
+        return True
+
+    return False
 
 
 def fetch_page(page_url, user, password):
@@ -15,6 +27,9 @@ def fetch_page(page_url, user, password):
         page_url,
         auth=auth,
     )
+
+    if r.status_code != 200:
+        raise NetworkError(f"Status {r.status_code}, Body '{r.text}'")
 
     return r.text
 
