@@ -8,6 +8,7 @@ from flask_cors import CORS
 import daos.logic as db
 from daos.schema import ReviewSchema
 from marshmallow import ValidationError
+import os
 
 MAX_LIMIT_REPOSITORY = 200
 DEFAULT_LIMIT_REPOSITORY = 25
@@ -29,6 +30,15 @@ def get_args():
         choices=["debug", "info", "warning", "error", "critical"],
         default="info",
         help="Log level",
+    )
+    parser.add_argument(
+        "-e",
+        "--mode",
+        dest="mode",
+        choices=["development", "test", "production"],
+        default=os.environ.get("APP_ENV"),
+        metavar="APP_ENV",
+        help="Environment mode",
     )
     parser.add_argument(
         "-p",
@@ -127,7 +137,7 @@ def patch_repo(repo_id):
     target_repo.status = review["status"]
 
     if "review_comment" in review:
-      target_repo.review_comment = review["review_comment"]
+        target_repo.review_comment = review["review_comment"]
 
     db.update_repository(target_repo)
 
@@ -140,9 +150,12 @@ def serve_spa(path):
     return render_template("index.html")
 
 
-def serve(port):
-    http_server = WSGIServer(("", port), app)
-    http_server.serve_forever()
+def serve(mode, port):
+    if mode == "development":
+        app.run(port=port, debug=True)
+    else:
+        http_server = WSGIServer(("", port), app)
+        http_server.serve_forever()
 
 
 if __name__ == "__main__":
@@ -154,9 +167,11 @@ if __name__ == "__main__":
         level=configuration.level.upper(),
     )
 
+    logging.info(f"Application started in {configuration.mode} mode")
+
     init_database(configuration.database)
 
     try:
-        serve(configuration.port)
+        serve(configuration.mode, configuration.port)
     except KeyboardInterrupt:
         logging.info("Shutting down server")
