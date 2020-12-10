@@ -21,7 +21,7 @@ def get_args():
         dest="gh_user",
         default=os.environ.get("GITHUB_USER"),
         metavar="GITHUB_USER",
-        help="Github user",
+        help="Github user (environment variable GITHUB_USER allowed)",
     )
     parser.add_argument(
         "-p",
@@ -29,7 +29,7 @@ def get_args():
         dest="gh_password",
         default=os.environ.get("GITHUB_PASSWORD"),
         metavar="GITHUB_PASSWORD",
-        help="Github password",
+        help="Github password (environment variable GITHUB_PASSWORD allowed)",
     )
     parser.add_argument(
         "-c",
