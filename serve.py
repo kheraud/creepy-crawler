@@ -38,7 +38,7 @@ def get_args():
         choices=["development", "test", "production"],
         default=os.environ.get("APP_ENV"),
         metavar="APP_ENV",
-        help="Environment mode",
+        help="Environment mode (environment variable APP_ENV)",
     )
     parser.add_argument(
         "-p",
