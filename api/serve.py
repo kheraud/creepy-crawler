@@ -21,7 +21,7 @@ def get_args():
         "--database",
         dest="database",
         help="Path to SQLite database",
-        default="app.db",
+        default=os.environ.get("DB_PATH"),
     )
     parser.add_argument(
         "-l",
@@ -152,7 +152,7 @@ def serve_spa(path):
 
 def serve(mode, port):
     if mode == "development":
-        app.run(port=port, debug=True)
+        app.run(host="0.0.0.0", port=port, debug=True)
     else:
         http_server = WSGIServer(("", port), app)
         http_server.serve_forever()

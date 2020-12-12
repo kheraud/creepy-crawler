@@ -1,8 +1,9 @@
 module.exports = {
-  "outputDir": "../dist",
+  "outputDir": process.env.DIST_DIR,
   "assetsDir": "static",
   "devServer": {
-    "proxy": "http://localhost:5000"
+    "port": 8080,
+    "proxy": process.env.PROXY_API
   },
   "transpileDependencies": [
     "vuetify"

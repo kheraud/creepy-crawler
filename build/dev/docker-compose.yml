@@ -1,52 +1,51 @@
 version: '3.7'
 services:
-    py-back:
-        hostname: ${COMPOSE_PROJECT_NAME}-py-back
+    py-api:
+        hostname: ${COMPOSE_PROJECT_NAME}-py-api
         build:
-            context: py-back
+            context: py-api
             args:
                 DOCKER_UID: ${DOCKER_UID}
         volumes:
-            - ../..:/var/www/html
+            - ../../api:/var/www/html
+            - ../../databases:/opt/db
         environment:
-            FLASK_ENV: development
-            DB_HOST: postgres
-            DB_PASS: ${DB_PASS}
-            DB_USER: ${DB_USER}
-            DB_NAME: ${DB_NAME}
-            DB_PORT: 5432
-            ADMIN_PWD: ${ADMIN_PWD}
-            SECRET_KEY: ${SECRET_KEY}
-            JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-        depends_on:
-            - postgres
+            APP_ENV: development
+            DB_PATH: /opt/db/app.db
         command: >
-            sh -c "make .refresh_pipenv && python manager.py start"
+            sh -c "pipenv install --system && python ./serve.py"
         ports:
-            - ${LOCAL_WEB_PORT}:5001
- 
-    postgres:
-        image: postgres:13.1
-        hostname: ${COMPOSE_PROJECT_NAME}-postgres
-        restart: unless-stopped
-        volumes:
-            - postgres:/var/lib/postgresql/data/
-        environment:
-          POSTGRES_USER: ${DB_USER}
-          POSTGRES_DB: ${DB_NAME}
-          POSTGRES_PASSWORD: ${DB_PASS}
-        ports:
-            - ${LOCAL_DB_PORT}:5432
+            - ${LOCAL_API_PORT}:5000
 
-    adminer:
-        image: adminer:4.7
-        hostname: ${COMPOSE_PROJECT_NAME}-adminer
+    js-front:
+        hostname: ${COMPOSE_PROJECT_NAME}-js-front
+        build:
+            context: js-front
+            args:
+                DOCKER_UID: ${DOCKER_UID}
+        volumes:
+            - ../../ui:/var/www/html
+            - ../../api/dist:/var/www/dist
         environment:
-            ADMINER_DEFAULT_SERVER: postgres
-        depends_on:
-            - postgres
+            NODE_ENV: development
+            PROXY_API: http://py-api:5000
+            DIST_DIR: /var/www/dist
+        command: >
+            sh -c "npm install && npm run serve"
         ports:
-            - ${LOCAL_ADMINER_PORT}:8080
+            - ${LOCAL_FRONT_PORT}:8080
+
+    sqlite-web:
+        image: coleifer/sqlite-web:latest
+        hostname: ${COMPOSE_PROJECT_NAME}-sqlite-web
+        environment:
+            SQLITE_DATABASE: app.db
+        volumes:
+            - ../../databases:/data
+        depends_on:
+            - py-api
+        ports:
+            - ${LOCAL_DB_PORT}:8080
 
 volumes:
-    postgres:
+    static-dist:
