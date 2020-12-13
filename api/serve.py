@@ -21,14 +21,14 @@ def get_args():
         "--database",
         dest="database",
         help="Path to SQLite database",
-        default="app.db",
+        default=os.environ.get("DB_PATH"),
     )
     parser.add_argument(
         "-l",
         "--log-level",
         dest="level",
         choices=["debug", "info", "warning", "error", "critical"],
-        default="info",
+        default=os.environ.get("LOG_LEVEL"),
         help="Log level",
     )
     parser.add_argument(
@@ -38,7 +38,7 @@ def get_args():
         choices=["development", "test", "production"],
         default=os.environ.get("APP_ENV"),
         metavar="APP_ENV",
-        help="Environment mode",
+        help="Environment mode (environment variable APP_ENV)",
     )
     parser.add_argument(
         "-p",
@@ -152,7 +152,7 @@ def serve_spa(path):
 
 def serve(mode, port):
     if mode == "development":
-        app.run(port=port, debug=True)
+        app.run(host="0.0.0.0", port=port, debug=True)
     else:
         http_server = WSGIServer(("", port), app)
         http_server.serve_forever()
