@@ -12,6 +12,9 @@ refresh_pipenv: .out_docker .configure
 refresh_npm: .out_docker .configure
 	@cd build/dev && docker-compose exec js-front npm install
 
+crawl_md_url: .out_docker .configure
+	@cd build/dev && docker-compose exec py-api python creep-crawl.py $(CRAWL_URL)
+
 ####################### Docker init #######################
 
 .out_docker:
