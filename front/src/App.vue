@@ -1,12 +1,33 @@
 <template>
   <v-app>
     <v-navigation-drawer v-model="drawer" app clipped stateless>
-      <v-list shaped>
-        <v-subheader>Categories</v-subheader>
+      <v-list>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title class="title">
+              Categories
+              <v-btn
+                color="primary"
+                v-on:click="fetchCategories"
+                fab
+                small
+                absolute
+                bottom
+                right
+              >
+                <v-icon>mdi-refresh</v-icon>
+              </v-btn>
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+      <v-divider></v-divider>
+      <v-list flat>
         <v-list-item-group
           v-if="categories"
           v-model="categoryIndex"
           color="primary"
+          mandatory
         >
           <v-list-item v-for="item in categories" :key="item.id">
             <v-list-item-content>
@@ -16,7 +37,11 @@
                   v-for="st in repositoryStatus"
                   :key="st.id"
                   :icon="st.icon"
-                  :label="st.id in item['status'] ? item['status'][st.id].toString() : '0'"
+                  :label="
+                    st.id in item['status']
+                      ? item['status'][st.id].toString()
+                      : '0'
+                  "
                   :color-ref="st.color"
                 >
                 </StatusLabel>
@@ -35,7 +60,7 @@
 
     <v-main>
       <v-container v-if="categories" fluid class="pa-0">
-        <RepoList v-bind:category="categories[categoryIndex].id" />
+        <RepoList v-bind:category="categoryId" />
       </v-container>
       <FullLoader v-else />
     </v-main>
@@ -66,17 +91,46 @@ export default {
     StatusLabel,
   },
   mounted() {
-    fetch("/api/pages")
-      .then((response) => response.json())
-      .then((data) => {
-        this.categories = [
-          {
-            id: null,
-            name: "All",
-          },
-          ...data,
-        ];
-      });
+    this.fetchCategories();
+  },
+  methods: {
+    fetchCategories: function() {
+      let selectedCategory = this.categoryId;
+
+      this.categories = null;
+
+      fetch("/api/pages")
+        .then((response) => response.json())
+        .then((data) => {
+          this.categories = [
+            {
+              id: null,
+              name: "All",
+            },
+            ...data,
+          ];
+
+          let selectedCategoryIndex = this.categories.findIndex(
+            (elt) => elt.id == selectedCategory
+          );
+
+          if (selectedCategoryIndex >= 0)
+            this.categoryIndex = selectedCategoryIndex;
+          else this.categoryIndex = 0;
+        });
+    },
+  },
+  computed: {
+    categoryId: function() {
+      if (
+        this.categoryIndex != null &&
+        this.categories != null &&
+        this.categoryIndex < this.categories.length
+      )
+        return this.categories[this.categoryIndex].id;
+
+      return null;
+    },
   },
 };
 </script>
