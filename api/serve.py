@@ -28,7 +28,7 @@ def get_args():
         "--log-level",
         dest="level",
         choices=["debug", "info", "warning", "error", "critical"],
-        default="info",
+        default=os.environ.get("LOG_LEVEL"),
         help="Log level",
     )
     parser.add_argument(

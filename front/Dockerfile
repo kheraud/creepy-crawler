@@ -23,8 +23,6 @@ RUN set -xe; \
     chown -R www-data:www-data /var/www; \
     apk del --no-network .build-deps;
 
-COPY --chown=www-data:www-data .bashrc /var/www/.bashrc
+WORKDIR /var/www/html
 
 USER www-data
-
-WORKDIR /var/www/html

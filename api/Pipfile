@@ -9,6 +9,7 @@ Flask = "*"
 gevent = "*"
 Flask-Cors = "*"
 marshmallow = "*"
+requests = "*"
 
 [dev-packages]
 pylint = "*"

@@ -24,8 +24,11 @@ RUN set -xe; \
     chown -R www-data:www-data /var/www; \
     apk del --no-network .build-deps;
 
-COPY --chown=www-data:www-data .bashrc /var/www/.bashrc
+WORKDIR /var/www/html
+
+COPY Pipfile /var/www/html/
+COPY Pipfile.lock /var/www/html/
+
+RUN pipenv install --system
 
 USER www-data
-
-WORKDIR /var/www/html

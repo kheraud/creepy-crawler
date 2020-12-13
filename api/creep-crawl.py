@@ -52,14 +52,14 @@ def get_args():
         "--database",
         dest="database",
         help="Path to SQLite database",
-        default="app.db",
+        default=os.environ.get("DB_PATH"),
     )
     parser.add_argument(
         "-l",
         "--log-level",
         dest="level",
         choices=["debug", "info", "warning", "error", "critical"],
-        default="info",
+        default=os.environ.get("LOG_LEVEL"),
         help="Log level",
     )
     parser.add_argument(
@@ -101,7 +101,7 @@ def get_repositories_to_crawl(md_page, crawl_min_age):
 
     logging.info(
         f"{count_initial_repo - len(gh_repos_set)}"
-        "repo removed from crawl cause already crawled recently"
+        f" repo(s) not crawled because last crawl < {crawl_min_age} sec"
     )
 
     return gh_repos_set

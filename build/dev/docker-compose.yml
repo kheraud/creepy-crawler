@@ -3,7 +3,7 @@ services:
     py-api:
         hostname: ${COMPOSE_PROJECT_NAME}-py-api
         build:
-            context: py-api
+            context: ../../api
             args:
                 DOCKER_UID: ${DOCKER_UID}
         volumes:
@@ -12,6 +12,9 @@ services:
         environment:
             APP_ENV: development
             DB_PATH: /opt/db/app.db
+            GITHUB_USER: ${GITHUB_USER}
+            GITHUB_PASSWORD: ${GITHUB_PASSWORD}
+            LOG_LEVEL: ${LOG_LEVEL}
         command: >
             sh -c "pipenv install --system && python ./serve.py"
         ports:
@@ -20,11 +23,11 @@ services:
     js-front:
         hostname: ${COMPOSE_PROJECT_NAME}-js-front
         build:
-            context: js-front
+            context: ../../front
             args:
                 DOCKER_UID: ${DOCKER_UID}
         volumes:
-            - ../../ui:/var/www/html
+            - ../../front:/var/www/html
             - ../../api/dist:/var/www/dist
         environment:
             NODE_ENV: development
