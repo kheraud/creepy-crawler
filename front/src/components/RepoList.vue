@@ -127,8 +127,6 @@ export default {
           if (forcePageRewind)
             this.page = 1;
 
-          console.log(forcePageRewind);
-
           if (data["metadata"]["limit"] > 0)
             this.pageCount = Math.ceil(
               data["metadata"]["total"] / Math.min(data["metadata"]["limit"])
