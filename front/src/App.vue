@@ -70,8 +70,8 @@
 
 <script>
 import FullLoader from "./components/FullLoader.vue";
-import StatusLabel from "./components/StatusLabel";
-import { RepositoryStatus } from "./utils/enumerations.js";
+import StatusLabel from "./components/StatusLabel.vue";
+import { status as RepositoryStatus } from "../app.config.js";
 import RepoList from "./components/RepoList.vue";
 import Footer from "./components/Footer.vue";
 

@@ -48,8 +48,8 @@ import Repository from "./Repository.vue";
 import {
   SelectRepositorySort,
   SelectRepositoryStatus,
-  RepositoryPerPage,
 } from "../utils/enumerations.js";
+import { repositoryPerPage } from "../../app.config.js"
 
 export default {
   components: {
@@ -62,7 +62,7 @@ export default {
     return {
       loading: true,
 
-      repositoryPerPage: RepositoryPerPage,
+      repositoryPerPage: repositoryPerPage,
       sortList: SelectRepositorySort,
       statusList: SelectRepositoryStatus,
 
@@ -105,11 +105,11 @@ export default {
         },
         {
           key: "limit",
-          value: RepositoryPerPage,
+          value: repositoryPerPage,
         },
         {
           key: "offset",
-          value: forcePageRewind ? 0 : ((this.page - 1) * RepositoryPerPage),
+          value: forcePageRewind ? 0 : ((this.page - 1) * repositoryPerPage),
         },
         ...statusQuery,
       ];
