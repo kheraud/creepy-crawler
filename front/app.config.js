@@ -29,7 +29,13 @@ module.exports = {
       label: "Implemented",
       color: "green darken-3",
       icon: "mdi-thumb-up-outline",
+    },
+    {
+      id: 5,
+      label: "Usefull later",
+      color: "teal darken-1",
+      icon: "mdi-clock",
     }
   ],
-  "repositoryPerPage": 10,
+  "repositoryPerPage": 50,
 }
