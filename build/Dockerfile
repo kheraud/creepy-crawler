@@ -35,6 +35,7 @@ RUN set -xe; \
     echo "export PS1=\"\\e[0;37m\\]\\u@\\e[4;31m\\]\\h\\e[0;37m\\] \\w \\e[0m\\]> \"" > /var/www/.bashrc;
 
 ENV SHELL=/bin/bash
+ENV PIPENV_VENV_IN_PROJECT=1
 
 WORKDIR /var/www/html
 

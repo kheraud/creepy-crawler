@@ -2,8 +2,8 @@ ifndef VERBOSE
 	MAKEFLAGS += --no-print-directory
 endif
 
-.PHONY: default .configure reset_configuration destroy start \
-	stop restart shell_api shell_front crawl_md_url ps log build_for_prod
+.PHONY: default .configure reset_configuration destroy start stop  \
+	restart shell_api shell_front crawl_md_url build_for_prod ps log
 
 default:
 
