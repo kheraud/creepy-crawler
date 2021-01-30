@@ -4,12 +4,10 @@ RUN set -xe; \
     apk add --update --no-cache \
         bash \
         bash-completion \
-        gcc \
-        libc-dev \
+        build-base \
         curl \
         openssl \
         git \
-        make \
         grep \
         jq \
         libffi-dev;
