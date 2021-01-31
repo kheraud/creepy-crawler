@@ -6,9 +6,13 @@
     class="flex-grow-1 d-flex flex-column align-start ma-1"
     :loading="loading"
   >
-    <v-card-title>
-      <v-icon v-if="statusIcon" class="mr-2" :color="statusColor">{{ statusIcon }}</v-icon>
-      {{ content.name }}
+    <v-card-title style="width: 100%">
+      <span :class="[statusColor, 'title-overflow']" :title="content.name">
+        <v-icon v-if="statusIcon" class="mr-1" :color="statusBgColor">{{
+          statusIcon
+        }}</v-icon>
+        {{ content.name }}</span
+      >
     </v-card-title>
     <v-card-subtitle>
       <v-icon dense class="mr-1">mdi-link-variant</v-icon>
@@ -27,12 +31,7 @@
       {{ content.description }}
     </v-card-text>
     <v-card-actions class="mt-auto" style="width: 100%; min-width: 100%;">
-      <v-select
-        v-model="repoStatus"
-        :items="statusList"
-        full-width
-        dense
-      />
+      <v-select v-model="repoStatus" :items="statusList" full-width dense />
     </v-card-actions>
   </v-card>
 </template>
@@ -73,9 +72,20 @@ export default {
     },
   },
   computed: {
-    statusColor: function() {
+    statusBgColor: function() {
       if (MapRepositoryStatus.has(this.repoStatus))
         return MapRepositoryStatus.get(this.repoStatus)["color"];
+      return null;
+    },
+    statusColor: function() {
+      if (MapRepositoryStatus.has(this.repoStatus)) {
+        let bgColor = MapRepositoryStatus.get(this.repoStatus)["color"];
+        if (bgColor) {
+          let sColor = bgColor.split(" ");
+          sColor[0] = sColor[0] + "--text";
+          return sColor.join(" ");
+        }
+      }
       return null;
     },
     statusIcon: function() {
@@ -86,3 +96,11 @@ export default {
   },
 };
 </script>
+<style scoped>
+.title-overflow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+</style>

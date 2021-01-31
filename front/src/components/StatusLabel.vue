@@ -1,6 +1,6 @@
 <template>
   <span :class="['mr-1', textColor]">
-    <v-icon small class="mr-0" :color="colorRef">{{ icon }}</v-icon>
+    <v-icon small class="ml-2" :color="colorRef">{{ icon }}</v-icon>
     {{ label }}
   </span>
 </template>
