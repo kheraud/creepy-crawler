@@ -31,11 +31,12 @@ RUN set -xe; \
     useradd -u ${DOCKER_UID} www-data -d /var/www; \
     chown -R www-data:www-data /var/www; \
     apk del --no-network .build-deps; \
-    pip install pipenv; \
-    echo "export PS1=\"\\e[0;37m\\]\\u@\\e[4;31m\\]\\h\\e[0;37m\\] \\w \\e[0m\\]> \"" > /var/www/.bashrc;
+    pip install pipenv;
 
 ENV SHELL=/bin/bash
 ENV PIPENV_VENV_IN_PROJECT=1
+
+COPY --chown=www-data:www-data ./build/api.bashrc /var/www/.bashrc
 
 WORKDIR /var/www/html
 
@@ -69,10 +70,11 @@ RUN set -xe; \
     deluser --remove-home node; \
     useradd -u ${DOCKER_UID} www-data -d /var/www; \
     chown -R www-data:www-data /var/www; \
-    apk del --no-network .build-deps; \
-    echo "export PS1=\"\\e[0;37m\\]\\u@\\e[4;32m\\]\\h\\e[0;37m\\] \\w \\e[0m\\]> \"" > /var/www/.bashrc;
+    apk del --no-network .build-deps;
 
 ENV SHELL=/bin/bash
+
+COPY --chown=www-data:www-data ./build/front.bashrc /var/www/.bashrc
 
 WORKDIR /var/www/html
 

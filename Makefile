@@ -3,7 +3,7 @@ ifndef VERBOSE
 endif
 
 .PHONY: default .configure reset_configuration destroy start stop  \
-	restart shell_api shell_front crawl_md_url build_for_prod ps log
+	restart shell shell_api shell_front crawl_md_url build_for_prod ps log
 
 default:
 
@@ -42,23 +42,23 @@ stop:
 
 restart: stop start
 
+shell:
+ifneq (, $(shell which tmuxp))
+	@DISABLE_AUTO_TITLE=true tmuxp load -a .
+else
+	$(error You don't have tmuxp installed or in path)
+endif
+
+
 # You do need a --user-aliases to force run container to be in the 
 # compose network : https://github.com/docker/compose/issues/3492
 shell_api:
 	@cd build && docker-compose run --use-aliases --service-ports --rm \
-		py-api bash -c "pipenv install --dev && pipenv shell"
+		py-api bash
 
 shell_front:
-# In order to have a script run at start of bash we create
-# a temporary file and relocate it in front directory
-# https://stackoverflow.com/a/18756584/595223
-	@TMPFILE=$(mktemp)
-	@echo "npm install" > $TMPFILE
-	@echo ". ~/.bashrc" >> $TMPFILE
-	@echo "rm -f /var/www/html/$TMPFILE" >> $TMPFILE
-	@mv $TMPFILE front/
 	@cd build && docker-compose run --use-aliases --service-ports --rm \
-		js-front bash --rcfile /var/www/html/$TMPFILE
+		js-front bash
 
 #######################
 ### Util management ###

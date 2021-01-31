@@ -10,6 +10,7 @@ I started this project in order to test [Awesome tools](https://github.com/topic
 - [Make](https://www.gnu.org/software/make/)
 - [Docker](https://www.docker.com/)
 - [Docker-compose](https://docs.docker.com/compose/)
+- [Optional] [Tmux](https://github.com/tmux/tmux) + [Tmuxp](https://github.com/tmux-python/tmuxp)
 
 ## How to start
 
@@ -19,10 +20,20 @@ Clone this project, launch the development toolbox :
 
 ```shell
 git clone git@github.com:kheraud/creepy-crawler.git
+
 make create
 # Supply parameters as asked
 # I suppose you choose 8889 as LOCAL_FRONT_PORT
+
+# Start API TERMINAL and follow instructions
 make shell_api
+
+# In another terminal
+# Start FRONT TERMINAL and follow instructions
+make shell_front
+
+# Or if you have tmux + tmuxp installed
+make shell
 ```
 
 Then go to <http://localhost:8889>, you should see an empty interface with no repository listed

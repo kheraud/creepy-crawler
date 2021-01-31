@@ -1,0 +1,18 @@
+---
+session_name: creepy-crawler
+start_directory: ./
+before_script: make start
+windows:
+- window_name: creepy-dockers
+  focus: true
+  layout: even-vertical
+  panes:
+    - shell_command:
+        - make shell_api
+        - pipenv install --dev
+        - pipenv run python serve.py
+      focus: true
+    - shell_command:
+        - make shell_front
+        - npm install
+        - npm run serve
