@@ -9,6 +9,8 @@ I started this project in order to test [Awesome tools](https://github.com/topic
 - A [github personal token](https://github.com/settings/tokens) with at least `repo.public_repo` permission
 - [Make](https://www.gnu.org/software/make/)
 - [Docker](https://www.docker.com/)
+- [Docker-compose](https://docs.docker.com/compose/)
+- [Optional] [Tmux](https://github.com/tmux/tmux) + [Tmuxp](https://github.com/tmux-python/tmuxp)
 
 ## How to start
 
@@ -18,10 +20,20 @@ Clone this project, launch the development toolbox :
 
 ```shell
 git clone git@github.com:kheraud/creepy-crawler.git
+
 make create
 # Supply parameters as asked
 # I suppose you choose 8889 as LOCAL_FRONT_PORT
-make log_all
+
+# Start API TERMINAL and follow instructions
+make shell_api
+
+# In another terminal
+# Start FRONT TERMINAL and follow instructions
+make shell_front
+
+# Or if you have tmux + tmuxp installed
+make shell
 ```
 
 Then go to <http://localhost:8889>, you should see an empty interface with no repository listed
@@ -35,7 +47,9 @@ If I want to crawl [Awesome Go list of tools](https://github.com/avelino/awesome
 :warning: Be caution, we target the raw page, not the github decorated one
 
 ```shell
-CRAWL_URL="https://raw.githubusercontent.com/avelino/awesome-go/master/README.md" make crawl_md_url
+# Go to py development shell
+make shell_api
+python creep-crawl.py "https://raw.githubusercontent.com/avelino/awesome-go/master/README.md"
 ```
 
 At the end of the crawl, refresh your <http://localhost:8889> page to see the new repositories
