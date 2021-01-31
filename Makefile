@@ -42,8 +42,10 @@ stop:
 
 restart: stop start
 
+# You do need a --user-aliases to force run container to be in the 
+# compose network : https://github.com/docker/compose/issues/3492
 shell_api:
-	@cd build && docker-compose run --service-ports --rm \
+	@cd build && docker-compose run --use-aliases --service-ports --rm \
 		py-api bash -c "pipenv install --dev && pipenv shell"
 
 shell_front:
@@ -55,7 +57,7 @@ shell_front:
 	@echo ". ~/.bashrc" >> $TMPFILE
 	@echo "rm -f /var/www/html/$TMPFILE" >> $TMPFILE
 	@mv $TMPFILE front/
-	@cd build && docker-compose run --service-ports --rm \
+	@cd build && docker-compose run --use-aliases --service-ports --rm \
 		js-front bash --rcfile /var/www/html/$TMPFILE
 
 #######################
