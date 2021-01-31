@@ -42,7 +42,7 @@ stop:
 
 restart: stop start
 
-shell:
+shell: .configure
 ifneq (, $(shell which tmuxp))
 	@DISABLE_AUTO_TITLE=true tmuxp load -a .
 else
@@ -52,11 +52,11 @@ endif
 
 # You do need a --user-aliases to force run container to be in the 
 # compose network : https://github.com/docker/compose/issues/3492
-shell_api:
+shell_api: .configure
 	@cd build && docker-compose run --use-aliases --service-ports --rm \
 		py-api bash
 
-shell_front:
+shell_front: .configure
 	@cd build && docker-compose run --use-aliases --service-ports --rm \
 		js-front bash
 
@@ -64,7 +64,8 @@ shell_front:
 ### Util management ###
 #######################
 crawl_md_url: .configure
-	@cd build && docker-compose exec py-api python creep-crawl.py $(CRAWL_URL)
+	@cd build && docker-compose run --rm \
+		py-api bash -c "pipenv install && pipenv run python creep-crawl.py $(CRAWL_URL)"
 
 build_for_prod:
 	@docker build -f build/Dockerfile --target py-production --tag $(DOCKER_IMG_TAG) .
