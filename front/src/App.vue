@@ -32,7 +32,7 @@
           <v-list-item v-for="item in categories" :key="item.id">
             <v-list-item-content>
               <v-list-item-title v-text="item.name"></v-list-item-title>
-              <v-list-item-subtitle v-if="'status' in item" align="center">
+              <v-list-item-subtitle v-if="'status' in item" align="left">
                 <StatusLabel
                   v-for="st in repositoryStatus"
                   :key="st.id"
@@ -81,7 +81,9 @@ export default {
       categoryIndex: 0,
       categories: null,
       drawer: true,
-      repositoryStatus: RepositoryStatus,
+      repositoryStatus: RepositoryStatus.filter((x) =>
+        [0, 3, 4].includes(x.id)
+      ),
     };
   },
   components: {

@@ -1,6 +1,6 @@
 <template>
   <span :class="['mr-1', textColor]">
-    <v-icon small class="mr-0" :color="colorRef">{{ icon }}</v-icon>
+    <v-icon small class="ml-2" :color="colorRef">{{ icon }}</v-icon>
     {{ label }}
   </span>
 </template>
@@ -12,10 +12,15 @@ export default {
     colorRef: String,
   },
   data() {
-    let sColor = this.colorRef.split(" ");
-    sColor[0] = sColor[0] + "--text";
     return {
-      textColor: sColor.join(" "),
+      textColor: this.colorRef
+        .split(" ")
+        .map((col) => {
+          if (col.startsWith("lighten") || col.startsWith("darken"))
+            return "text--" + col;
+          return col + "--text";
+        })
+        .join(" "),
     };
   },
 };
