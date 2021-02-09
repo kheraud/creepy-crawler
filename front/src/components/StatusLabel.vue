@@ -12,10 +12,15 @@ export default {
     colorRef: String,
   },
   data() {
-    let sColor = this.colorRef.split(" ");
-    sColor[0] = sColor[0] + "--text";
     return {
-      textColor: sColor.join(" "),
+      textColor: this.colorRef
+        .split(" ")
+        .map((col) => {
+          if (col.startsWith("lighten") || col.startsWith("darken"))
+            return "text--" + col;
+          return col + "--text";
+        })
+        .join(" "),
     };
   },
 };
