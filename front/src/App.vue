@@ -36,13 +36,12 @@
                 <StatusLabel
                   v-for="st in repositoryStatus"
                   :key="st.id"
-                  :icon="st.icon"
+                  :statusConf="st"
                   :label="
                     st.id in item['status']
                       ? item['status'][st.id].toString()
                       : '0'
                   "
-                  :color-ref="st.color"
                 >
                 </StatusLabel>
               </v-list-item-subtitle>
@@ -96,7 +95,7 @@ export default {
     this.fetchCategories();
   },
   methods: {
-    fetchCategories: function() {
+    fetchCategories: function () {
       let selectedCategory = this.categoryId;
 
       this.categories = null;
@@ -123,7 +122,7 @@ export default {
     },
   },
   computed: {
-    categoryId: function() {
+    categoryId: function () {
       if (
         this.categoryIndex != null &&
         this.categories != null &&

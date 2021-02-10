@@ -1,27 +1,18 @@
 <template>
-  <span :class="['mr-1', textColor]">
-    <v-icon small class="ml-2" :color="colorRef">{{ icon }}</v-icon>
+  <v-chip
+    :class="['mr-1', statusConf['contrastTextColor']]"
+    :color="statusConf['color']"
+    small
+  >
+    <v-icon small class="mr-1">{{ statusConf["icon"] }}</v-icon>
     {{ label }}
-  </span>
+  </v-chip>
 </template>
 <script>
 export default {
   props: {
-    icon: String,
+    statusConf: String,
     label: String,
-    colorRef: String,
-  },
-  data() {
-    return {
-      textColor: this.colorRef
-        .split(" ")
-        .map((col) => {
-          if (col.startsWith("lighten") || col.startsWith("darken"))
-            return "text--" + col;
-          return col + "--text";
-        })
-        .join(" "),
-    };
   },
 };
 </script>
